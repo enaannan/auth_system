@@ -1,0 +1,55 @@
+version: '3.8'
+
+services:
+  db:
+      image: postgres:15.8
+      container_name: auth_system_db
+      env_file:
+        - .env
+      environment:
+        - POSTGRES_DB=${DB_NAME}
+        - POSTGRES_USER=${DB_USER}
+        - POSTGRES_PASSWORD=${DB_PASSWORD}
+      ports:
+          - "5432:5432"
+      volumes:
+          - postgres_data:/var/lib/postgresql/data
+
+      healthcheck:
+        test: [ "CMD-SHELL", "pg_isready -d $${POSTGRES_DB} -U $${POSTGRES_USER}" ]
+        interval: 15s
+        timeout: 5s
+        retries: 4
+        start_period: 900s
+  web:
+    build: .
+    container_name : auth_System_api
+
+    working_dir: /app
+
+    volumes:
+        - ../auth_system:/app
+    env_file:
+      - .env
+    ports:
+       - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/healthcheck/"]
+      interval: 15s
+      timeout: 5s
+      retries: 4
+      start_period: 900s
+
+    environment:
+      - DEBUG=${DJANGO_DEBUG}
+      - DB_HOST=db
+      - DB_NAME=${DB_NAME}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+    command: /bin/bash -c "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
+volumes:
+  postgres_data:
