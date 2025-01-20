@@ -29,7 +29,7 @@ SECRET_KEY = 'django-insecure-_bn%ud1cw#l=p_2*)an5g0a^)9v)@6jgwyvya8nq6ano9nnheh
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = env('DJANGO_DEBUG')
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['auth-system-api-phbv.onrender.com', 'localhost', '127.0.0.1']
 
 
 # Application definition
