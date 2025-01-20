@@ -8,8 +8,7 @@ __pycache__/
 venv/
 auth_system/.env
 .env
-# Ignore Django migrations
-*/migrations/
+
 
 # Ignore database files
 db.sqlite3
