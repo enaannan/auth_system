@@ -56,7 +56,7 @@ The backend will now be available at http://127.0.0.1:8000/
 
 ### Hosted Links
 
-Backend Api:
+Backend Api: https://auth-system-api-phbv.onrender.com
 API Documentation: http://127.0.0.1:8000/swagger/
 
 ### Authentication Flow
