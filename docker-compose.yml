@@ -25,10 +25,8 @@ services:
     build: .
     container_name : auth_System_api
 
-    working_dir: /app
-
     volumes:
-        - ../auth_system:/app
+        - ../auth_system_api:/app
     env_file:
       - .env
     ports:

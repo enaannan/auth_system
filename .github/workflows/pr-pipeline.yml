@@ -1,0 +1,58 @@
+name: PR Pipeline
+
+on:
+  pull_request:
+    branches:
+      - main
+      - develop
+
+jobs:
+  test:
+    name: Run Tests with docker-compose
+    runs-on: ubuntu-latest
+    steps:
+      - name : Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Set up Docker Compose
+        run: sudo apt-get update && sudo apt-get install -y docker-compose
+
+      - name: Start Services
+        run: docker-compose -f docker-compose.yml up --build -d
+
+      - name: Run Tests
+        run: docker exec auth-system_api python manage.py test
+
+      - name: Tear down
+        if: always()
+        run: docker-compose -f docker-compose.yml down
+
+  build-and-push:
+    name: Build and Push Docker Image
+    runs-on: ubuntu-latest
+    needs: test
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Log in to DockerHub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Deploy to Staging
+        run: |
+          ssh ${{ secrects.STAGING_SERVER_USER}}@${{ secrets.STAGING_SERVER_HOST}} << EOF
+          docker pull enaannan/auth-system_api:${{ github.sha }}
+          docker stop auth-system_api || true
+          docker rm auth-system_api || true
+          docker run -d -p 8000:8000 --name auth-system_api --env-file .env enaannan/auth-system_api:${{ github.sha }}
+          EOF
+
+      - name: Run migrations
+        run: docker exec auth-system_api python manage.py migrate
+
+      - name: Health Check
+        run: curl -f http://<staging server ip>:8000/healthcheck/
